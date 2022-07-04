@@ -1,0 +1,16 @@
+{
+    "name": "CoreBoy.Unity",
+    "rootNamespace": "",
+    "references": [
+        "GUID:c309d50ecb1945f4bad2548244343354"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,11 @@
+{
+    "name": "com.ruccho.coreboy.unity",
+    "version": "1.0.0",
+    "displayName": "CoreBoy.Unity",
+    "description": "A GameBoy Emulator, in C#",
+    "unity": "2021.3",
+    "dependencies": {
+        "com.ruccho.coreboy": "1.0.0",
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+    }
+}
