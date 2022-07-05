@@ -7,6 +7,7 @@ using CoreBoy.controller;
 using CoreBoy.gui;
 using CoreBoy.memory.cart;
 using UnityEngine;
+using UnityEngine.Profiling;
 using File = UnityEngine.Windows.File;
 
 namespace CoreBoy.Unity
@@ -62,6 +63,9 @@ namespace CoreBoy.Unity
                 Controller = input,
                 Rom = new Cartridge(options, romName, rom)
             };
+
+            Emulator.BeginGameboyThread += gameboy => Profiler.BeginThreadProfiling("CoreBoy", "Gameboy");
+            Emulator.FinishGameboyThread += gameboy => Profiler.EndThreadProfiling();
 
             Emulator.Run(cancelCurrentEmulator.Token);
         }

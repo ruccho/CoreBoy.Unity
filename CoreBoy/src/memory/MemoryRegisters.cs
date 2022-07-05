@@ -6,78 +6,127 @@ namespace CoreBoy.memory
 {
     public class MemoryRegisters : IAddressSpace
     {
-        private readonly Dictionary<int, IRegister> _registers;
-        private readonly Dictionary<int, int> _values = new Dictionary<int, int>();
-        private readonly RegisterType[] _allowsWrite = {RegisterType.W, RegisterType.RW};
-        private readonly RegisterType[] _allowsRead = {RegisterType.R, RegisterType.RW};
+        private readonly RegisterType[] _allowsWrite = { RegisterType.W, RegisterType.RW };
+        private readonly RegisterType[] _allowsRead = { RegisterType.R, RegisterType.RW };
 
-        public MemoryRegisters(params IRegister[] registers)
+        private int dataOffset = 0;
+        private (IRegister, int)[] data = default;
+
+        public MemoryRegisters(int offset, int length, params IRegister[] registers)
         {
-            var map = new Dictionary<int, IRegister>();
+            dataOffset = offset;
+            data = new (IRegister, int)[length];
+
             foreach (var r in registers)
             {
-                if (map.ContainsKey(r.Address))
-                {
+                int index = r.Address - offset;
+                if (index < 0 || data.Length <= index)
+                    throw new ArgumentOutOfRangeException(nameof(r.Address), r.Address,
+                        $"Address of the register must be within the range: offset: 0x{offset:X4}, length: 0x{length:X}");
+
+                if (data[index].Item1 != null)
                     throw new ArgumentException($"Two registers with the same address: {r.Address}");
-                }
 
-                map.Add(r.Address, r);
-                _values.Add(r.Address, 0);
+                data[index] = (r, 0);
             }
-
-            _registers = map;
         }
 
         private MemoryRegisters(MemoryRegisters original)
         {
-            _registers = original._registers;
-            _values = new Dictionary<int, int>(original._values);
+            data = new (IRegister, int)[original.data.Length];
+            Array.Copy(original.data, data, data.Length);
+        }
+
+        private (IRegister, int) this[int address]
+        {
+            get
+            {
+                int index = address - dataOffset;
+                /*if (index < 0 || data.Length <= index)
+                    throw new ArgumentException($"Not valid register: 0x{address:X4}");*/
+
+                return data[index];
+            }
+
+            set
+            {
+                int index = address - dataOffset;
+                /*if (index < 0 || data.Length <= index)
+                    throw new ArgumentException($"Not valid register: 0x{address:X4}");*/
+
+                data[index] = value;
+            }
         }
 
         public int Get(IRegister reg)
         {
-            return _registers.ContainsKey(reg.Address)
-                ? _values[reg.Address]
-                : throw new ArgumentException("Not valid register: " + reg);
+            var t = this[reg.Address];
+            if (t.Item1 == null) throw new ArgumentException($"Not valid register: 0x{reg.Address:X4}");
+            return t.Item2;
         }
 
         public void Put(IRegister reg, int value)
         {
-            _values[reg.Address] = _registers.ContainsKey(reg.Address)
-                ? value
-                : throw new ArgumentException("Not valid register: " + reg);
+            var t = this[reg.Address];
+
+            if (t.Item1 == null) throw new ArgumentException("Not valid register: " + reg);
+
+            this[reg.Address] = (t.Item1, value);
         }
 
         public MemoryRegisters Freeze() => new MemoryRegisters(this);
 
         public int PreIncrement(IRegister reg)
         {
-            if (!_registers.ContainsKey(reg.Address))
-            {
-                throw new ArgumentException("Not valid register: " + reg);
-            }
+            var t = this[reg.Address];
 
-            var value = _values[reg.Address] + 1;
-            _values[reg.Address] = value;
+            if (t.Item1 == null) throw new ArgumentException("Not valid register: " + reg);
+
+            var value = t.Item2 + 1;
+
+            this[reg.Address] = (t.Item1, value);
+
             return value;
         }
 
-        public bool Accepts(int address) => _registers.ContainsKey(address);
+        public bool Accepts(int address)
+        {
+            int index = address - dataOffset;
+            if (index < 0 || data.Length <= index) return false;
+
+            return data[index].Item1 != null;
+        }
 
         public void SetByte(int address, int value)
         {
-            var regType = _registers[address].Type;
-            if (_allowsWrite.Contains(regType))
+            var t = this[address];
+
+            if (t.Item1 == null) throw new ArgumentException($"Not valid register: 0x{address:X4}");
+
+            int index = address - dataOffset;
+
+            var ttype = data[index].Item1.Type;
+            foreach (var type in _allowsWrite)
             {
-                _values[address] = value;
+                if (type == ttype)
+                {
+                    this[address] = (t.Item1, value);
+                    return;
+                }
             }
         }
 
         public int GetByte(int address)
         {
-            var regType = _registers[address].Type; 
-            return _allowsRead.Contains(regType) ? _values[address] : 0xff;
+            var t = this[address];
+
+            var ttype = t.Item1.Type;
+            foreach (var type in _allowsRead)
+            {
+                if (type == ttype) return t.Item2;
+            }
+
+            return 0xff;
         }
     }
 }
-

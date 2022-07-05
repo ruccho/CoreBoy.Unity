@@ -40,7 +40,7 @@ namespace CoreBoy.cpu
         private int _opcode1;
         private int _opcode2;
         private readonly int[] _operand = new int[2];
-        private List<Op> _ops;
+        private List<Op> _ops = new List<Op>();
         private int _operandIndex;
         private int _opIndex;
 
@@ -185,7 +185,8 @@ namespace CoreBoy.cpu
                             Registers.IncrementPc();
                         }
 
-                        _ops = CurrentOpcode.Ops.ToList();
+                        _ops.Clear();
+                        _ops.AddRange(CurrentOpcode.Ops);
                         State = State.RUNNING;
                         break;
 
@@ -285,7 +286,7 @@ namespace CoreBoy.cpu
                 case State.IRQ_READ_IE:
                     _interruptEnabled = _addressSpace.GetByte(0xffff);
                     _requestedIrq = null;
-                    foreach (var irq in InterruptManager.InterruptType.Values())
+                    foreach (var irq in InterruptManager.InterruptType.Values)
                     {
                         if ((_interruptFlag & _interruptEnabled & (1 << irq.Ordinal)) != 0)
                         {
@@ -346,7 +347,7 @@ namespace CoreBoy.cpu
             _opcode1 = 0;
             _opcode2 = 0;
             CurrentOpcode = null;
-            _ops = null;
+            _ops.Clear();
 
             _operand[0] = 0x00;
             _operand[1] = 0x00;

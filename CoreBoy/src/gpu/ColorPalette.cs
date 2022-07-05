@@ -89,6 +89,11 @@ namespace CoreBoy.gpu
             return _palettes[index].ToArray();
         }
 
+        public int GetPalette(int paletteIndex, int colorIndex)
+        {
+            return _palettes[paletteIndex][colorIndex];
+        }
+
         public override string ToString()
         {
             var b = new StringBuilder();

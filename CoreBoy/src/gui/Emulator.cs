@@ -21,6 +21,9 @@ namespace CoreBoy.gui
         public GameboyOptions Options { get; set; }
         public bool Active { get; set; }
 
+        public event Action<Gameboy> BeginGameboyThread;
+        public event Action<Gameboy> FinishGameboyThread;
+
         private readonly List<Thread> _runnables;
 
         public Emulator(GameboyOptions options)
@@ -53,7 +56,12 @@ namespace CoreBoy.gui
                 });
             }
 
-            _runnables.Add(new Thread(() => Gameboy.Run(token))
+            _runnables.Add(new Thread(() =>
+            {
+                BeginGameboyThread?.Invoke(Gameboy);
+                Gameboy.Run(token);
+                FinishGameboyThread?.Invoke(Gameboy);
+            })
             {
                 Priority = ThreadPriority.AboveNormal
             });

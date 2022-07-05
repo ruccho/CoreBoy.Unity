@@ -124,14 +124,14 @@ namespace CoreBoy.cpu
                 Handler = handler;
             }
 
-            public static IEnumerable<InterruptType> Values()
+            public static InterruptType[] Values = new[]
             {
-                yield return VBlank;
-                yield return Lcdc;
-                yield return Timer;
-                yield return Serial;
-                yield return P1013;
-            }
+                VBlank,
+                Lcdc,
+                Timer,
+                Serial,
+                P1013
+            };
         }
     }
 }

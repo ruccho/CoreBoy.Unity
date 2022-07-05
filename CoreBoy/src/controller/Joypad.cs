@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using CoreBoy.cpu;
 
 namespace CoreBoy.controller
 {
     public class Joypad : IAddressSpace
     {
-        private readonly ConcurrentDictionary<Button, Button> _buttons = new ConcurrentDictionary<Button, Button>();
+        private readonly HashSet<Button> _buttons = new HashSet<Button>();
         private int _p1;
 
         public Joypad(InterruptManager interruptManager, IController controller)
@@ -13,6 +14,7 @@ namespace CoreBoy.controller
             controller.SetButtonListener(new JoyPadButtonListener(interruptManager, _buttons));
         }
 
+        //0xFF00
         public bool Accepts(int address)
         {
             return address == 0xff00;
@@ -27,11 +29,15 @@ namespace CoreBoy.controller
         public int GetByte(int address)
         {
             var result = _p1 | 0b11001111;
-            foreach (var b in _buttons.Keys)
+
+            lock (_buttons)
             {
-                if ((b.Line & _p1) == 0)
+                foreach (var b in _buttons)
                 {
-                    result &= 0xff & ~b.Mask;
+                    if ((b.Line & _p1) == 0)
+                    {
+                        result &= 0xff & ~b.Mask;
+                    }
                 }
             }
 
