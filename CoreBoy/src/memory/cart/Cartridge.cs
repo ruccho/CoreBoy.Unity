@@ -25,10 +25,18 @@ namespace CoreBoy.memory.cart
         public bool Gbc { get; }
         public string Title { get; }
 
-        public Cartridge(GameboyOptions options)
+        public Cartridge(GameboyOptions options) : this(options, options.RomFile.Name, File.ReadAllBytes(options.RomFile.FullName))
         {
-            var file = options.RomFile;
-            var rom = LoadFile(file);
+            
+        }
+
+        public Cartridge(GameboyOptions options, string romName, byte[] romBytes) : this(options, romName, romBytes.Select(b => (int)b).ToArray())
+        {
+            
+        }
+
+        public Cartridge(GameboyOptions options, string romName, int[] rom)
+        {
             var type = CartridgeTypeExtensions.GetById(rom[0x0147]);
             
             Title = GetTitle(rom);
@@ -49,7 +57,7 @@ namespace CoreBoy.memory.cart
             if (type.IsBattery() && options.IsSupportBatterySaves())
             {
                 //throw new NotImplementedException("Implement battery loading");
-                battery = new FileBattery(file.Name);
+                battery = new FileBattery(romName);
             }
 
             if (type.IsMbc1())

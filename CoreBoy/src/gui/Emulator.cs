@@ -17,6 +17,7 @@ namespace CoreBoy.gui
         public IController Controller { get; set; } = new NullController();
         public SerialEndpoint SerialEndpoint { get; set; } = new NullSerialEndpoint();
         public ISoundOutput SoundOutput { get; set; } = new NullSoundOutput();
+        public Cartridge Rom { get; set; }
         public GameboyOptions Options { get; set; }
         public bool Active { get; set; }
 
@@ -30,13 +31,13 @@ namespace CoreBoy.gui
 
         public void Run(CancellationToken token)
         {
-            if (!Options.RomSpecified || !Options.RomFile.Exists)
+            if (Rom == null && (!Options.RomSpecified || !Options.RomFile.Exists))
             {
                 throw new ArgumentException("The ROM path doesn't exist: " + Options.RomFile);
             }
 
-            var rom = new Cartridge(Options);
-            Gameboy = CreateGameboy(rom);
+            Rom ??= new Cartridge(Options);
+            Gameboy = CreateGameboy(Rom);
 
             if (Options.Headless)
             {
@@ -91,10 +92,7 @@ namespace CoreBoy.gui
             //display = new SwingDisplay(SCALE);
             //controller = new SwingController(properties);
             //gameboy = new Gameboy(options, rom, display, controller, sound, serialEndpoint, console);
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return new Gameboy(Options, rom, Display, Controller, SoundOutput, SerialEndpoint);
-
+            
             return new Gameboy(Options, rom, Display, Controller, SoundOutput, SerialEndpoint);
         }
     }

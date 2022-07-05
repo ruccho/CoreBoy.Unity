@@ -7,10 +7,9 @@ using UnityEngine;
 
 namespace CoreBoy.Unity
 {
-    public class SoftWoundSoundOutput : MonoBehaviour, ISoundOutput
+    public class CoreBoySoundOutput : MonoBehaviour, ISoundOutput
     {
         private float tick;
-        private int divider;
 
         private int position = 0;
         private float[] stackedSamples = default;
@@ -20,12 +19,14 @@ namespace CoreBoy.Unity
         private bool isInitialized = false;
 
         [SerializeField] private bool fixedSampleRate = true;
+        [SerializeField] private bool showDebugGui = false;
+
+        private readonly object updateSamplesLocker = new object();
 
         private void Start()
         {
-            lock (this)
+            lock (updateSamplesLocker)
             {
-                divider = (int)(Gameboy.TicksPerSec / AudioSettings.outputSampleRate);
                 stackedSamples = new float[Gameboy.TicksPerSec * 2];
                 outputSampleRate = AudioSettings.outputSampleRate;
                 isInitialized = true;
@@ -42,14 +43,14 @@ namespace CoreBoy.Unity
 
         public void Play(int left, int right)
         {
-            lock (this)
+            lock (updateSamplesLocker)
             {
                 if (!isInitialized) return;
 
                 if (stackedSamples.Length - 2 <= position * 2) return;
 
-                stackedSamples[position * 2] = left / 255f; // * 2f - 1f;
-                stackedSamples[position * 2 + 1] = right / 255f; // * 2f - 1f;
+                stackedSamples[position * 2] = left / 255f;
+                stackedSamples[position * 2 + 1] = right / 255f;
                 position++;
             }
         }
@@ -58,16 +59,15 @@ namespace CoreBoy.Unity
         private int latestStackedSamplesGameboy = 0;
         private void OnGUI()
         {
-            lock (this)
-            {
-                float w = 200;
-                float h = 20;
-                GUI.DrawTexture(new Rect(w, 0, 5, h), Texture2D.whiteTexture);
-                GUI.color = Color.red;
-                GUI.DrawTexture(new Rect(0, 0, w * ((float)latestRequiredSamplesGameboy / Gameboy.TicksPerSec), h * 0.5f), Texture2D.whiteTexture);
-                GUI.color = Color.green;
-                GUI.DrawTexture(new Rect(0, h * 0.5f, w * ((float)latestStackedSamplesGameboy / Gameboy.TicksPerSec), h*0.5f), Texture2D.whiteTexture);
-            }
+            if (!showDebugGui) return;
+            
+            float w = 200;
+            float h = 20;
+            GUI.DrawTexture(new Rect(w, 0, 5, h), Texture2D.whiteTexture);
+            GUI.color = Color.red;
+            GUI.DrawTexture(new Rect(0, 0, w * ((float)latestRequiredSamplesGameboy / Gameboy.TicksPerSec), h * 0.5f), Texture2D.whiteTexture);
+            GUI.color = Color.green;
+            GUI.DrawTexture(new Rect(0, h * 0.5f, w * ((float)latestStackedSamplesGameboy / Gameboy.TicksPerSec), h*0.5f), Texture2D.whiteTexture);
         }
 
         private void OnAudioFilterRead(float[] data, int channels)

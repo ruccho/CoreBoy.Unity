@@ -2,7 +2,7 @@
     "name": "CoreBoy.Unity",
     "rootNamespace": "",
     "references": [
-        "GUID:c309d50ecb1945f4bad2548244343354"
+        "GUID:8628e103ab9e741bb8850430de19d771"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
