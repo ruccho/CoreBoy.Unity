@@ -74,46 +74,63 @@ namespace CoreBoy.Unity
         {   
             if (fixedSampleRate)
             {
-                lock (this)
+                lock (updateSamplesLocker)
                 {
                     if (!isInitialized) return;
                     
                     int requiredSamples = data.Length / channels;
                     int requiredSamplesGameboy = latestRequiredSamplesGameboy =
                         Mathf.FloorToInt(requiredSamples * ((float)Gameboy.TicksPerSec / outputSampleRate));
-                    
-                    //Debug.Log($"Required: {requiredSamples}, {requiredSamplesGameboy} (stacked), Stacked: {position}");
 
                     latestStackedSamplesGameboy = position;
                     
                     int remain = position - requiredSamplesGameboy;
 
-                    if (remain < 0f) return;
-
-                    for (int i = 0; i < requiredSamples; i++)
+                    if (remain < 0f)
                     {
-                        int t = Mathf.FloorToInt((float)i / requiredSamples * requiredSamplesGameboy);
-
-                        for (int c = 0; c < channels; c++)
+                        
+                        if (position == 0) return;
+                
+                        for (int i = 0; i < requiredSamples; i++)
                         {
-                            data[i * channels + c] = stackedSamples[t * 2 + (c % 2)];
+                            int t = Mathf.FloorToInt((float)i / requiredSamples * position);
+
+                            for (int c = 0; c < channels; c++)
+                            {
+                                data[i * channels + c] = stackedSamples[t * 2 + (c % 2)];
+                            }
                         }
-                    }
 
-                    for (int i = 0; i < remain; i++)
+                        position = 0;
+                    }
+                    else
                     {
-                        stackedSamples[i * 2] = stackedSamples[(requiredSamplesGameboy + i) * 2];
-                        stackedSamples[i * 2 + 1] = stackedSamples[(requiredSamplesGameboy + i) * 2 + 1];
+                        for (int i = 0; i < requiredSamples; i++)
+                        {
+                            int t = Mathf.FloorToInt((float)i / requiredSamples * requiredSamplesGameboy);
+
+                            for (int c = 0; c < channels; c++)
+                            {
+                                data[i * channels + c] = stackedSamples[t * 2 + (c % 2)];
+                            }
+                        }
+
+                        for (int i = 0; i < remain; i++)
+                        {
+                            stackedSamples[i * 2] = stackedSamples[(requiredSamplesGameboy + i) * 2];
+                            stackedSamples[i * 2 + 1] = stackedSamples[(requiredSamplesGameboy + i) * 2 + 1];
+                        }
+
+                        position = remain;
                     }
 
-                    position = remain;
                 }
             }
             else
             {
                 int requiredSamples = data.Length / channels;
 
-                lock (this)
+                lock (updateSamplesLocker)
                 {
                     if (position == 0) return;
                 

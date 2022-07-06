@@ -32,6 +32,7 @@ namespace CoreBoy.serial
             if (++_divider >= Gameboy.TicksPerSec / 8192 / _speedMode.GetSpeedMode())
             {
                 _transferInProgress = false;
+                _sc &= ~(1 << 7);
                 try
                 {
                     _sb = _serialEndpoint.transfer(_sb);

@@ -57,7 +57,7 @@ namespace CoreBoy.memory.cart
             if (type.IsBattery() && options.IsSupportBatterySaves())
             {
                 //throw new NotImplementedException("Implement battery loading");
-                battery = new FileBattery(romName);
+                battery = new RawFileBattery(romName);// new FileBattery(romName);
             }
 
             if (type.IsMbc1())
@@ -188,6 +188,7 @@ namespace CoreBoy.memory.cart
                 2 => 1,
                 3 => 4,
                 4 => 16,
+                5 => 8,
                 _ => throw new ArgumentException("Unsupported RAM size: " + Integer.ToHexString(id))
             };
         }

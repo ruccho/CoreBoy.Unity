@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using CoreBoy.controller;
+using CoreBoy.gpu;
 using CoreBoy.gui;
 using CoreBoy.memory.cart;
 using UnityEngine;
 using UnityEngine.Profiling;
 using File = UnityEngine.Windows.File;
+using Random = UnityEngine.Random;
 
 namespace CoreBoy.Unity
 {
@@ -96,6 +98,11 @@ namespace CoreBoy.Unity
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        private void OnDestroy()
+        {
+            StopEmulator();
         }
 
 

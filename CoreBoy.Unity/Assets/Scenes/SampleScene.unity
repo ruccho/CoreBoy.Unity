@@ -484,7 +484,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startOnAwake: 1
   romLoadingMode: 1
-  filename: /Users/ruccho/Documents/development/gbs/Sample0/build/rom/game.gb
+  filename: 
   romBytes: {fileID: 0}
   soundOutput: {fileID: 519420033}
   display: {fileID: 422301}

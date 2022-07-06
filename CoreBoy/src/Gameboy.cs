@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using CoreBoy.controller;
 using CoreBoy.cpu;
@@ -32,9 +33,9 @@ namespace CoreBoy
         private readonly bool _gbc;
 
         public Gameboy(
-            GameboyOptions options, 
-            Cartridge rom, 
-            IDisplay display, 
+            GameboyOptions options,
+            Cartridge rom,
+            IDisplay display,
             IController controller,
             ISoundOutput soundOutput,
             SerialEndpoint serialEndpoint)
@@ -84,7 +85,7 @@ namespace CoreBoy
             Cpu = new Cpu(Mmu, interruptManager, _gpu, display, SpeedMode);
 
             interruptManager.DisableInterrupts(false);
-            
+
             if (!options.UseBootstrap)
             {
                 InitiliseRegisters();
@@ -95,15 +96,21 @@ namespace CoreBoy
         {
             var registers = Cpu.Registers;
 
-            registers.SetAf(0x01b0);
-            if (_gbc)
+            if (!_gbc)
             {
-                registers.A = 0x11;
+                registers.SetAf(0x0180);
+                registers.SetBc(0x0013);
+                registers.SetDe(0x00d8);
+                registers.SetHl(0x014d);
+            }
+            else
+            {
+                registers.SetAf(0x1180);
+                registers.SetBc(0x0000);
+                registers.SetDe(0xff56);
+                registers.SetHl(0x000d);
             }
 
-            registers.SetBc(0x0013);
-            registers.SetDe(0x00d8);
-            registers.SetHl(0x014d);
             registers.SP = 0xfffe;
             registers.PC = 0x0100;
         }
@@ -112,7 +119,7 @@ namespace CoreBoy
         {
             var requestedScreenRefresh = false;
             var lcdDisabled = false;
-            
+
             while (!token.IsCancellationRequested)
             {
                 if (Pause)
@@ -120,6 +127,7 @@ namespace CoreBoy
                     Thread.Sleep(1000);
                     continue;
                 }
+
 
                 var newMode = Tick();
                 if (newMode.HasValue)
@@ -150,6 +158,7 @@ namespace CoreBoy
                     requestedScreenRefresh = false;
                     _display.WaitForRefresh();
                 }
+                
             }
         }
 
