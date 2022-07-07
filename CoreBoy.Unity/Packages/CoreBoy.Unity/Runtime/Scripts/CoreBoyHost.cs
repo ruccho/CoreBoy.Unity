@@ -7,6 +7,7 @@ using CoreBoy.controller;
 using CoreBoy.gpu;
 using CoreBoy.gui;
 using CoreBoy.memory.cart;
+using CoreBoy.memory.cart.battery;
 using UnityEngine;
 using UnityEngine.Profiling;
 using File = UnityEngine.Windows.File;
@@ -35,6 +36,7 @@ namespace CoreBoy.Unity
         [SerializeField] private CoreBoyInput input = default;
 
         private CancellationTokenSource cancelCurrentEmulator = default;
+        private RawFileBattery battery = default;
 
         private void Start()
         {
@@ -57,13 +59,14 @@ namespace CoreBoy.Unity
             cancelCurrentEmulator = new CancellationTokenSource();
 
             var options = new GameboyOptions();
+            battery = new RawFileBattery(romName, false);
 
             Emulator = new Emulator(options)
             {
                 Display = display,
                 SoundOutput = soundOutput,
                 Controller = input,
-                Rom = new Cartridge(options, romName, rom)
+                Rom = new Cartridge(options, romName, rom, battery)
             };
 
             Emulator.BeginGameboyThread += gameboy => Profiler.BeginThreadProfiling("CoreBoy", "Gameboy");
@@ -79,6 +82,9 @@ namespace CoreBoy.Unity
                 Emulator.Stop(cancelCurrentEmulator);
             }
             else cancelCurrentEmulator?.Cancel();
+            
+            battery?.Dispose();
+            battery = null;
         }
 
 

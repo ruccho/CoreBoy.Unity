@@ -85,24 +85,26 @@ namespace CoreBoy.gpu.phase
                 for (var i = 0; i < _sprites.Length; i++)
                 {
                     var s = _sprites[i];
-                    if (s == null)
+                    var sx = s.GetX();
+                    
+                    if (!s.IsValid())
                     {
                         continue;
                     }
 
-                    if (_x == 0 && s.GetX() < 8)
+                    if (_x == 0 && sx < 8)
                     {
-                        _fetcher.AddSprite(s, 8 - s.GetX(), i);
+                        _fetcher.AddSprite(s, 8 - sx, i);
                         spriteAdded = true;
 
-                        _sprites[i] = null;
+                        _sprites[i] = default;
                     }
-                    else if (s.GetX() - 8 == _x)
+                    else if (sx - 8 == _x)
                     {
                         _fetcher.AddSprite(s, 0, i);
                         spriteAdded = true;
 
-                        _sprites[i] = null;
+                        _sprites[i] = default;
                     }
 
                     if (spriteAdded)

@@ -40,6 +40,8 @@ namespace CoreBoy.memory.cart.type
                    (address >= 0xa000 && address < 0xc000);
         }
 
+        private static readonly long[] tempClockData = new long[11];
+
 
         public void SetByte(int address, int value)
         {
@@ -48,7 +50,8 @@ namespace CoreBoy.memory.cart.type
                 _ramWriteEnabled = (value & 0b1010) != 0;
                 if (!_ramWriteEnabled)
                 {
-                    _battery.SaveRamWithClock(_ram, _clock.Serialize());
+                    _clock.Serialize(tempClockData);
+                    _battery.SaveRamWithClock(_ram, tempClockData);
                 }
             }
             else if (address >= 0x2000 && address < 0x4000)

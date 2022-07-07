@@ -25,17 +25,17 @@ namespace CoreBoy.memory.cart
         public bool Gbc { get; }
         public string Title { get; }
 
-        public Cartridge(GameboyOptions options) : this(options, options.RomFile.Name, File.ReadAllBytes(options.RomFile.FullName))
+        public Cartridge(GameboyOptions options, IBattery battery = null) : this(options, options.RomFile.Name, File.ReadAllBytes(options.RomFile.FullName), battery)
         {
             
         }
 
-        public Cartridge(GameboyOptions options, string romName, byte[] romBytes) : this(options, romName, romBytes.Select(b => (int)b).ToArray())
+        public Cartridge(GameboyOptions options, string romName, byte[] romBytes, IBattery battery = null) : this(options, romName, romBytes.Select(b => (int)b).ToArray(), battery)
         {
             
         }
 
-        public Cartridge(GameboyOptions options, string romName, int[] rom)
+        public Cartridge(GameboyOptions options, string romName, int[] rom, IBattery battery = null)
         {
             var type = CartridgeTypeExtensions.GetById(rom[0x0147]);
             
@@ -53,11 +53,14 @@ namespace CoreBoy.memory.cart
             }
             // LOG.debug("ROM banks: {}, RAM banks: {}", romBanks, ramBanks);
 
-            IBattery battery = new NullBattery();
             if (type.IsBattery() && options.IsSupportBatterySaves())
             {
                 //throw new NotImplementedException("Implement battery loading");
-                battery = new RawFileBattery(romName);// new FileBattery(romName);
+                battery ??= new RawFileBattery(romName, true);// new FileBattery(romName);
+            }
+            else
+            {
+                battery = new NullBattery();
             }
 
             if (type.IsMbc1())

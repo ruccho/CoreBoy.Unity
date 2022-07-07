@@ -408,7 +408,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fixedSampleRate: 1
-  showDebugGui: 1
+  showDebugGui: 0
 --- !u!1 &961323729
 GameObject:
   m_ObjectHideFlags: 0

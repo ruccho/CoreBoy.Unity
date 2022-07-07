@@ -146,9 +146,9 @@ namespace CoreBoy.memory.cart.rtc
                              daysHigh * 256 * 24 * 60 * 60;
         }
 
-        public long[] Serialize()
+        public void Serialize(long[] buffer)
         {
-            var clockData = new long[11];
+            var clockData = buffer;//new long[11];
             Latch();
             clockData[0] = clockData[5] = GetSeconds();
             clockData[1] = clockData[6] = GetMinutes();
@@ -157,7 +157,7 @@ namespace CoreBoy.memory.cart.rtc
             clockData[4] = clockData[9] = GetDayCounter() / 256;
             clockData[10] = _latchStart / 1000;
             Unlatch();
-            return clockData;
+            //return clockData;
         }
     }
 }

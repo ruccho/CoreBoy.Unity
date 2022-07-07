@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using CoreBoy.gpu.phase;
 using CoreBoy.memory;
 
@@ -11,11 +12,13 @@ namespace CoreBoy.gpu
     {
         private enum State
         {
-            ReadTileId,
+            ReadTileId = 0,
             ReadData1,
             ReadData2,
             Push,
-            ReadSpriteTileId,
+            
+            //in progress
+            ReadSpriteTileId = int.MinValue,
             ReadSpriteFlags,
             ReadSpriteData1,
             ReadSpriteData2,
@@ -23,14 +26,6 @@ namespace CoreBoy.gpu
         }
 
         private static readonly int[] EmptyPixelLine = new int[8];
-
-        private static readonly List<State> SpritesInProgress = new List<State> {
-            State.ReadSpriteTileId,
-            State.ReadSpriteFlags,
-            State.ReadSpriteData1,
-            State.ReadSpriteData2,
-            State.PushSprite
-        };
 
         private readonly IPixelFifo _fifo;
         private readonly IAddressSpace _videoRam0;
@@ -63,7 +58,8 @@ namespace CoreBoy.gpu
 
         private int _divider = 2;
 
-        public Fetcher(IPixelFifo fifo, IAddressSpace videoRam0, IAddressSpace videoRam1, IAddressSpace oemRam, Lcdc lcdc,
+        public Fetcher(IPixelFifo fifo, IAddressSpace videoRam0, IAddressSpace videoRam1, IAddressSpace oemRam,
+            Lcdc lcdc,
             MemoryRegisters registers, bool gbc)
         {
             _gbc = gbc;
@@ -142,21 +138,23 @@ namespace CoreBoy.gpu
             {
                 case State.ReadTileId:
                     _tileId = _videoRam0.GetByte(_mapAddress + _xOffset);
-                   
+
                     _tileAttributes = _gbc
-                            ? TileAttributes.ValueOf(_videoRam1.GetByte(_mapAddress + _xOffset))
-                            : TileAttributes.Empty;
+                        ? TileAttributes.ValueOf(_videoRam1.GetByte(_mapAddress + _xOffset))
+                        : TileAttributes.Empty;
 
                     _state = State.ReadData1;
                     break;
 
                 case State.ReadData1:
-                    _tileData1 = GetTileData(_tileId, _tileLine, 0, _tileDataAddress, _tileIdSigned, _tileAttributes, 8);
+                    _tileData1 = GetTileData(_tileId, _tileLine, 0, _tileDataAddress, _tileIdSigned, _tileAttributes,
+                        8);
                     _state = State.ReadData2;
                     break;
 
                 case State.ReadData2:
-                    _tileData2 = GetTileData(_tileId, _tileLine, 1, _tileDataAddress, _tileIdSigned, _tileAttributes, 8);
+                    _tileData2 = GetTileData(_tileId, _tileLine, 1, _tileDataAddress, _tileIdSigned, _tileAttributes,
+                        8);
                     _state = State.Push;
                     goto stateSwitch; // Sorry mum
 
@@ -217,7 +215,7 @@ namespace CoreBoy.gpu
 
         public bool SpriteInProgress()
         {
-            return SpritesInProgress.Contains(_state);
+            return (int)_state < 0;
         }
 
         public int[] Zip(int data1, int data2, bool reverse)

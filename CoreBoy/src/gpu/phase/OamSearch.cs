@@ -10,8 +10,9 @@ namespace CoreBoy.gpu.phase
             ReadingX
         }
 
-        public sealed class SpritePosition
+        public readonly struct SpritePosition
         {
+            private readonly bool _isValid;
 
             private readonly int _x;
             private readonly int _y;
@@ -22,6 +23,7 @@ namespace CoreBoy.gpu.phase
                 this._x = x;
                 this._y = y;
                 this._address = address;
+                this._isValid = true;
             }
 
             public int GetX()
@@ -38,6 +40,8 @@ namespace CoreBoy.gpu.phase
             {
                 return _address;
             }
+
+            public bool IsValid() => _isValid;
         }
 
         private readonly IAddressSpace _oemRam;
@@ -67,7 +71,7 @@ namespace CoreBoy.gpu.phase
             _i = 0;
             for (var j = 0; j < _sprites.Length; j++)
             {
-                _sprites[j] = null;
+                _sprites[j] = default;
             }
 
             return this;

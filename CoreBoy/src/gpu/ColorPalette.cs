@@ -11,20 +11,16 @@ namespace CoreBoy.gpu
         private int _index;
         private bool _autoIncrement;
 
-        private readonly List<List<int>> _palettes;
+        private readonly int[][] _palettes;
 
         public ColorPalette(int offset)
         {
-            _palettes = new List<List<int>>();
+            _palettes = new int[8][];
             for (var x = 0; x < 8; x++)
             {
-                var row = new List<int>(4);
-                for (var y = 0; y < 4; y++)
-                {
-                    row.Add(0);
-                }
+                var row = new int[4];
 
-                _palettes.Add(row);
+                _palettes[x] = row;
             }
 
             _indexAddress = offset;
@@ -86,7 +82,7 @@ namespace CoreBoy.gpu
 
         public int[] GetPalette(int index)
         {
-            return _palettes[index].ToArray();
+            return _palettes[index];
         }
 
         public int GetPalette(int paletteIndex, int colorIndex)
